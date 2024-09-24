@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chatbot</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}">
+  <style>
+    /* Hide the chat window initially */
+    .chat {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 900px; /* Adjust width as needed */
+      background-color: #fff;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+      z-index: 10;
+    }
+
+    /* Add overflow-y: auto for scrolling */
+    #messageFormeight {
+      overflow-y: auto;
+      height: 500px; /* Adjust height as needed */
+      position: relative;
+    }
+
+    #loading {
+      display: none;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 20px; /* Adjust this value to set the gap height from the bottom */
+    }
+
+    .msg_cotainer_send {
+      background-color: #007bff;
+      color: white;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 10px;
+      max-width: 75%;
+      float: right;
+      clear: both;
+    }
+
+    .msg_cotainer {
+      background-color: #f1f0f0;
+      color: black;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 10px;
+      max-width: 75%;
+      float: left;
+      clear: both;
+    }
+
+    .transparent-text {
+      opacity: 0.5;
+    }
+
+    .sample-messages {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .sample-message {
+      display: inline-block;
+      background-color: #007bff; /* Same color as user input bubble */
+      color: white;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer; /* Make it clear these are clickable */
+    }
+
+    /* Unique IDs for each sample message */
+    #sample1 { background-color: #007bff; }
+    #sample2 { background-color: #007bff; }
+    #sample3 { background-color: #007bff; }
+  </style>
+</head>
+
+<body>
+  <button type="button" class="btn btn-primary chat-btn" style="position: fixed; bottom: 20px; right: 20px;">
+    <i class="fas fa-comment"></i> Chat
+  </button>
+
+  <div class="container-fluid h-100 chat">
+    <div class="row justify-content-center h-100">
+      <div class="col-md-8 col-xl-6">
+        <div class="card">
+          <div class="card-header msg_head">
+            <div class="d-flex bd-highlight">
+              <div class="user_info">
+                <span>FrshrBot</span>
+                <p>Have a query? Get it answered!</p>
+              </div>
+              <button type="button" class="close" style="position: absolute; top: 15px; right: 15px;" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="messageFormeight" class="card-body msg_card_body">
+            <!-- Pre-existing welcome message -->
+            <div class="msg_cotainer">
+              Hi, How can Generali assist you today?
+            </div>
+
+            <!-- Sample messages container -->
+            <div class="sample-messages">
+              <div id="sample1" class="sample-message">About Us</div>
+              <div id="sample2" class="sample-message">-</div>
+              <!-- <div id="sample3" class="sample-message">Case Studies</div> -->
+            </div>
+          </div>
+          
+          <div class="card-footer">
+            <div id="loading">Loading...</div>
+            <form id="messageArea" class="input-group">
+              <input type="text" id="text" name="msg" placeholder="Type your query..." autocomplete="off" class="form-control type_msg" required>
+              <div class="input-group-append">
+                <button type="submit" id="send" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const prewrittenAnswers = {
+      "About Us": "Generali is an independent Italian Group established in 1831, known for its strong international presence and being among the world's leading insurers. With operations in over 60 countries, Generali had total premium income exceeding €70 billion in 2016. The company focuses on driving sustainable and profitable growth for communities, clients, employees, and shareholders through its practices, capabilities, and resources.",
+      "-": "-"
+      // "Case Studies": "Frshr Technologies has worked on various case studies, including the development of an AI and Machine Learning solution called PrimeID for digital identity. Another case study involved collaborating with Say Cheezz, a photography business in Bangalore, to create a custom eCommerce platform for camera rental and sales. Additionally, they developed CodeQuarks, a code-sharing platform for programming coaches to teach students in live classes."
+    };
+
+    function scrollToBottom() {
+      var messageContainer = $("#messageFormeight");
+      messageContainer.scrollTop(messageContainer.prop("scrollHeight"));
+    }
+
+    $(document).ready(function() {
+      // Open chat window on button click
+      $('.chat-btn').click(function() {
+        $('.chat').show();
+        scrollToBottom();
+        $("#text").focus();  // Set focus to the input field
+      });
+
+      // Close chat window on close button click
+      $('.close').click(function() {
+        $('.chat').hide();
+      });
+
+      // Handle sample message clicks
+      $('.sample-message').click(function() {
+        var userQuery = $(this).text();
+        var userHtml = '<div class="msg_cotainer_send">' + userQuery + '</div>';
+        $("#messageFormeight").append(userHtml);
+        scrollToBottom();
+
+        // Simulate bot response
+        var botResponse = prewrittenAnswers[userQuery];
+        var botHtml = '<div class="msg_cotainer">' + botResponse + '</div>';
+        $("#messageFormeight").append(botHtml);
+        scrollToBottom();
+      });
+
+      // Handle form submission
+      $("#messageArea").on("submit", function(event) {
+        event.preventDefault();
+
+        var rawText = $("#text").val();
+        var userHtml = '<div class="msg_cotainer_send">' + rawText + '</div>';
+        
+        $("#text").val("");
+        $("#messageFormeight").append(userHtml);
+        scrollToBottom();
+        $("#loading").show();
+        $("#send").attr("disabled", true);
+        $("#messageFormeight").addClass("transparent-text");
+
+        $.ajax({
+          data: { msg: rawText },
+          type: "POST",
+          url: "/get", // Replace with your actual endpoint
+        }).done(function(data) {
+          $("#loading").hide();
+          $("#messageFormeight").removeClass("transparent-text");
+          var botHtml = '<div class="msg_cotainer">' + data + '</div>';
+          $("#messageFormeight").append($.parseHTML(botHtml));
+          $("#send").attr("disabled", false);
+          scrollToBottom();
+        });
+      });
+    });
+  </script>
+</body>
+</html>
