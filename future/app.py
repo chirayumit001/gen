@@ -41,7 +41,7 @@ def get_Chat_response(text):
     load_dotenv()
     
     # os.environ['OPENAI_API_KEY']=os.getenv("OPENAI_API_KEY")
-    os.environ['OPENAI_API_KEY']='sk-proj-l6lhdh6zadWETeCgSQyqT3BlbkFJEfofIqmuPzNqxoW3E2Ys'
+    os.environ['OPENAI_API_KEY']=
     # print(os.environ['OPENAI_API_KEY'])
     # import getpass
     # import os
